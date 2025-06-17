@@ -50,6 +50,32 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.post('/create-payment-intent', async (req, res) => {
+  try {
+    const { amount, currency } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      payment_method_types: ['card'],
+    });
+
+    res.json({ client_secret: paymentIntent.client_secret });
+  } catch (err) {
+    console.error('Payment intent error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'Server is running!',
+    timestamp: new Date().toISOString(),
+    port: PORT 
+  });
+});
+
 
 // Route للتحقق من أن السيرفر يعمل
 app.get('/', (req, res) => {
@@ -201,7 +227,8 @@ app.use('*', (req, res) => {
 });
 
 // تشغيل السيرفر على البورت المطلوب من Vercel أو 10000
-const PORT = process.env.PORT || 10000;
+// Ou utilisez un port aléatoire disponible
+const PORT = process.env.PORT || 3001; // Utilisez un port fixe
 app.listen(PORT, () => {
   console.log(`🚀 Stripe server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
